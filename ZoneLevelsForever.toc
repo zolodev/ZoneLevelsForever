@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: ZoneLevelsForever
+## IconTexture: Interface\Icons\INV_Misc_Map02
+## Notes: Shows recommended level ranges for each zone on the world map
+## Author: Zolo
+## Version: 1.0.0
+
+Config.lua
+Data.lua
+Core.lua
+Pin.xml

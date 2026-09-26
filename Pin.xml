@@ -1,0 +1,14 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Frame name="ZoneLevelsForeverPinTemplate" mixin="ZoneLevelsForeverPinMixin" virtual="true">
+        <Size x="1" y="1"/>
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString parentKey="Label" inherits="GameFontNormalOutline" justifyH="CENTER">
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+    </Frame>
+</Ui>
