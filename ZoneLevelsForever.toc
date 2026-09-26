@@ -3,9 +3,15 @@
 ## IconTexture: Interface\Icons\INV_Misc_Map02
 ## Notes: Shows recommended level ranges for each zone on the world map
 ## Author: Zolo
-## Version: 1.0.0
+## Version: 1.2.0
+## SavedVariables: ZoneLevelsForeverDB
+## AddonCompartmentFunc: ZoneLevelsForever_OnAddonCompartmentClick
 
 Config.lua
 Data.lua
+ToggleButton.xml
 Core.lua
+MapUI.lua
+SettingsWindow.lua
+Options.lua
 Pin.xml

@@ -1,26 +1,39 @@
 -- ZoneLevelsForever settings. Edit the values below and /reload.
--- To try sizes live first, use /zonelevels scale continent <n> and
--- /zonelevels scale zone <n>; those last until /reload, then copy the
--- values you like into this file.
+--
+-- The first five are the defaults for the settings window and
+-- Options -> AddOns -> ZoneLevelsForever. The comment above each one is the
+-- name it has there. Changing a setting in the game saves your own value,
+-- which wins over this file until you press "Reset to defaults".
 local _, ns = ...
 
 ns.Config = {
-    -- Label size on the world/continent map. 1.0 = normal UI font size.
-    continentScale = 1.0,
+    -- "Show labels on continent maps"
+    -- true = always shown, false = only while you hover a zone.
+    showContinentLabels = false,
 
-    -- Label size on a zone's own map (zoomed in).
-    zoneScale = 2.0,
+    -- "Label size on continent maps"
+    -- 0.5-5, where 1.0 = normal UI font size.
+    continentLabelSize = 1.5,
 
-    -- Position of the label on a zone's own map, as a fraction of the map:
-    -- x: 0 = left edge, 0.5 = middle, 1 = right edge
-    -- y: 0 = top edge,  0.5 = middle, 1 = bottom edge
-    zoneLabelX = 0.5,
-    zoneLabelY = 0.02,
+    -- "Label size on zone maps"
+    -- 0.5-5, where 1.0 = normal UI font size.
+    zoneLabelSize = 2.0,
 
-    -- Which part of the label sits at that position, e.g. "TOP" (top centre),
-    -- "TOPLEFT", "TOPRIGHT", "CENTER", "BOTTOM", "BOTTOMLEFT", "BOTTOMRIGHT".
-    -- "TOP" with y = 0.02 keeps the whole label inside the map's top edge;
-    -- "TOPLEFT" with x = 0.02 puts it in the top-left corner.
+    -- "Zone map label position, left to right"
+    -- 0-100 %: 0 = left edge, 50 = middle, 100 = right edge.
+    zoneLabelLeftToRight = 50,
+
+    -- "Zone map label position, top to bottom"
+    -- 0-100 %: 0 = top edge, 50 = middle, 100 = bottom edge.
+    zoneLabelTopToBottom = 0,
+
+    -- The settings below are only in this file.
+
+    -- Which part of the zone map label sits at the position above, e.g. "TOP"
+    -- (top centre), "TOPLEFT", "TOPRIGHT", "CENTER", "BOTTOM", "BOTTOMLEFT",
+    -- "BOTTOMRIGHT".
+    -- "TOP" with top to bottom = 0 keeps the whole label inside the map's top
+    -- edge; "TOPLEFT" with left to right = 2 puts it in the top-left corner.
     zoneLabelAnchor = "TOP",
 
     -- Colours as "RRGGBB" hex (like in an image editor).

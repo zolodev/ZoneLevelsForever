@@ -1,7 +1,7 @@
--- ZoneLevelsForever: writes recommended level ranges on the world map.
+-- ZoneLevelsForever: zone data, label text, events and slash commands.
+-- Everything drawn on the world map is in MapUI.lua.
 local addonName, ns = ...
 
-local PIN_TEMPLATE = "ZoneLevelsForeverPinTemplate"
 local MIN_SCALE, MAX_SCALE = 0.5, 5 -- limits for /zonelevels scale
 local config = ns.Config -- user settings, see Config.lua
 
@@ -110,94 +110,87 @@ local function FormatLabel(name, zone, range, showTerritory)
     return table.concat(lines, "\n")
 end
 
--- Map pin ---------------------------------------------------------------------
--- Global because Pin.xml references it by name.
-ZoneLevelsForeverPinMixin = CreateFromMixins(MapCanvasPinMixin)
-
-function ZoneLevelsForeverPinMixin:OnLoad()
-    self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
-end
-
--- anchor: which point of the label sits on the pin position ("TOP", "TOPLEFT"...).
-function ZoneLevelsForeverPinMixin:OnAcquired(text, x, y, scale, anchor)
-    anchor = anchor or "CENTER"
-    self.Label:ClearAllPoints()
-    self.Label:SetPoint(anchor)
-    self.Label:SetJustifyH(anchor:find("LEFT") and "LEFT" or anchor:find("RIGHT") and "RIGHT" or "CENTER")
-    self.Label:SetText(text)
-    -- Same start and end scale = constant size on screen at every zoom level.
-    self:SetScalingLimits(1, scale, scale)
-    self:SetPosition(x, y)
-    self:ApplyCurrentScale()
-end
-
--- Data provider ---------------------------------------------------------------
-local provider = CreateFromMixins(MapCanvasDataProviderMixin)
-
-function provider:RemoveAllData()
-    self:GetMap():RemoveAllPinsByTemplate(PIN_TEMPLATE)
-end
-
-function provider:AddContinentPins(map, continentID)
-    local zones = C_Map.GetMapChildrenInfo(continentID, Enum.UIMapType.Zone)
-    if not zones then return end
-
-    for _, zone in ipairs(zones) do
-        local guideZone, range = GetZone(zone.name)
-        if range then
-            local minX, maxX, minY, maxY = C_Map.GetMapRectOnMap(zone.mapID, continentID)
-            if minX then
-                map:AcquirePin(PIN_TEMPLATE, FormatLabel(zone.name, guideZone, range, false),
-                    (minX + maxX) / 2, (minY + maxY) / 2, config.continentScale)
-            end
-        end
+-- All labels on continent maps, or only on hover. Your saved choice (map button,
+-- options panel, /zonelevels toggle), else the default from Config.lua.
+local function ShowAllContinentLabels()
+    local saved = ZoneLevelsForeverDB and ZoneLevelsForeverDB.showContinentLabels
+    if saved == nil then
+        return config.showContinentLabels == true
     end
+    return saved
 end
 
-function provider:RefreshAllData()
-    self:RemoveAllData()
+-- Settings that can be changed in game. Config.lua has the defaults; changes
+-- from the settings window, options panel or /zonelevels are saved in
+-- ZoneLevelsForeverDB and override them.
+local SAVED_KEYS = { "continentLabelSize", "zoneLabelSize", "zoneLabelLeftToRight", "zoneLabelTopToBottom" }
+ns.MIN_SCALE, ns.MAX_SCALE = MIN_SCALE, MAX_SCALE
 
-    local map = self:GetMap()
-    local mapID = map:GetMapID()
-    local info = mapID and C_Map.GetMapInfo(mapID)
-    if not info then return end
+-- The values from Config.lua, kept before saved settings override them.
+ns.Defaults = { showContinentLabels = config.showContinentLabels == true }
+for _, key in ipairs(SAVED_KEYS) do
+    ns.Defaults[key] = config[key]
+end
 
-    if info.mapType == Enum.UIMapType.Continent then
-        self:AddContinentPins(map, mapID)
-    elseif info.mapType == Enum.UIMapType.Zone then
-        local zone, range = GetZone(info.name)
-        if range then
-            map:AcquirePin(PIN_TEMPLATE, FormatLabel(info.name, zone, range, true),
-                config.zoneLabelX, config.zoneLabelY, config.zoneScale, config.zoneLabelAnchor)
-        end
+function ns.SetSetting(key, value)
+    config[key] = value
+    ZoneLevelsForeverDB[key] = value
+    ns.RefreshMap()
+    ns.UpdateSettingsWindow()
+    return value
+end
+
+function ns.SetLabelScale(key, scale)
+    return ns.SetSetting(key, Clamp(scale, MIN_SCALE, MAX_SCALE))
+end
+
+-- Forgets every saved setting, so the values from Config.lua apply again.
+function ns.ResetSettings()
+    ZoneLevelsForeverDB.showContinentLabels = nil
+    for _, key in ipairs(SAVED_KEYS) do
+        ZoneLevelsForeverDB[key] = nil
+        config[key] = ns.Defaults[key]
     end
+    ns.UpdateToggleButton()
+    ns.RefreshMap()
+    ns.UpdateSettingsWindow()
 end
 
-local function RefreshIfShown()
-    if WorldMapFrame and WorldMapFrame:IsShown() then
-        provider:RefreshAllData()
-    end
-end
-
-EventUtil.ContinueOnAddOnLoaded("Blizzard_WorldMap", function()
-    WorldMapFrame:AddDataProvider(provider)
-end)
+-- Shared with MapUI.lua and Options.lua.
+ns.GetZone = GetZone
+ns.FormatLabel = FormatLabel
+ns.ShowAllContinentLabels = ShowAllContinentLabels
 
 -- Events ----------------------------------------------------------------------
 local frame = CreateFrame("Frame")
 local handlers = {}
 
+function handlers.ADDON_LOADED(name)
+    if name ~= addonName then return end
+    ZoneLevelsForeverDB = ZoneLevelsForeverDB or {}
+    for _, key in ipairs(SAVED_KEYS) do
+        config[key] = ZoneLevelsForeverDB[key] or config[key]
+    end
+    -- Settings saved under the names used before version 1.2.0.
+    for _, oldKey in ipairs({ "continentScale", "zoneScale", "zoneLabelX", "zoneLabelY" }) do
+        ZoneLevelsForeverDB[oldKey] = nil
+    end
+    frame:UnregisterEvent("ADDON_LOADED")
+    ns.UpdateToggleButton()
+end
+
 function handlers.PLAYER_LEVEL_UP(level)
     playerLevel = level -- UnitLevel still returns the old level during this event
-    RefreshIfShown()
+    ns.RefreshMap()
 end
 
 function handlers.PLAYER_ENTERING_WORLD()
     playerLevel = UnitLevel("player")
-    RefreshIfShown()
+    ns.RefreshMap()
 end
 
 frame:SetScript("OnEvent", function(_, event, ...) handlers[event](...) end)
+frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LEVEL_UP")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
@@ -235,8 +228,7 @@ local function PrintUnmatched()
 end
 
 SLASH_ZONELEVELSFOREVER1 = "/zonelevels"
--- Session-only size change, for finding a good value to put in Config.lua.
-local SCALE_KEYS = { continent = "continentScale", zone = "zoneScale" }
+local SCALE_KEYS = { continent = "continentLabelSize", zone = "zoneLabelSize" }
 
 local function SetScale(arg)
     local which, value = arg:match("^(%a+)%s*(%S*)$")
@@ -244,21 +236,25 @@ local function SetScale(arg)
     local scale = tonumber(value)
     if not (key and scale) then
         print(("%s: continent %.2f, zone %.2f. Use /zonelevels scale continent|zone <%.1f-%d>."):format(
-            addonName, config.continentScale, config.zoneScale, MIN_SCALE, MAX_SCALE))
+            addonName, config.continentLabelSize, config.zoneLabelSize, MIN_SCALE, MAX_SCALE))
         return
     end
-    config[key] = Clamp(scale, MIN_SCALE, MAX_SCALE)
-    print(("%s: %s scale set to %.2f until /reload. Put it in Config.lua to keep it."):format(
-        addonName, which, config[key]))
-    RefreshIfShown()
+    print(("%s: %s scale set to %.2f."):format(addonName, which, ns.SetLabelScale(key, scale)))
 end
 
 SlashCmdList.ZONELEVELSFOREVER = function(msg)
     local command, arg = msg:match("^(%S*)%s*(.-)$")
     if command == "check" then
         PrintUnmatched()
+    elseif command == "toggle" then
+        ns.ToggleContinentLabels()
     elseif command == "scale" then
         SetScale(arg)
+    elseif command == "options" then
+        ns.ToggleSettingsWindow()
+    elseif command == "reset" then
+        ns.ResetSettings()
+        print(addonName .. ": settings reset to the values in Config.lua.")
     elseif command == "horde" or command == "alliance" then
         PrintGuide(command == "horde" and "Horde" or "Alliance")
     else
