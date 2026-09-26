@@ -99,13 +99,14 @@ local function FormatRange(range)
     return GetDifficultyColorCode(range) .. text .. "|r"
 end
 
--- "Name" / "16-20", plus "Horde dominated" when showTerritory is set.
+-- "Name" / "16-20", plus "Horde dominated" or "Neutral" when showTerritory is set.
 local function FormatLabel(name, zone, range, showTerritory)
     local colors = config.colors
     local lines = { Colorize(colors.zoneName, name), FormatRange(range) }
-    local faction = showTerritory and ns.Territory[zone]
-    if faction then
-        table.insert(lines, Colorize(colors[faction:lower()], faction .. " dominated"))
+    local territory = showTerritory and ns.Territory[zone]
+    if territory then
+        local text = territory == "Neutral" and "Neutral" or territory .. " dominated"
+        table.insert(lines, Colorize(colors[territory:lower()], text))
     end
     return table.concat(lines, "\n")
 end

@@ -41,6 +41,7 @@ ns.Config = {
         zoneName = "FFD100",  -- zone name (Blizzard's gold)
         alliance = "3F8CFF",  -- "Alliance dominated" line on zone maps
         horde = "FF2626",     -- "Horde dominated" line on zone maps
+        neutral = "68CCF0",   -- "Neutral" line on zone maps (sanctuary blue)
 
         -- Level range. false = colour by difficulty for your level
         -- (grey/green/yellow/orange/red), or a hex string for one fixed colour.

@@ -23,9 +23,11 @@ ns.Guide = {
         { 42, 45, { "Tanaris", "Feralas", "Stranglethorn Vale", "Dustwallow Marsh" } },
         { 45, 48, { "Feralas", "The Hinterlands", "Tanaris", "Azshara" } },
         { 48, 50, { "Tanaris", "Blasted Lands", "Searing Gorge", "Azshara" } },
+        { 48, 55, { "Moonglade" } },
         { 50, 52, { "Searing Gorge", "Un'Goro Crater", "Azshara" } },
         { 52, 54, { "Un'Goro Crater", "Felwood", "Azshara" } },
         { 54, 56, { "Felwood", "Winterspring", "Burning Steppes" } },
+        { 55, 60, { "Deadwind Pass" } },
         { 56, 57, { "Western Plaguelands", "Burning Steppes" } },
         { 57, 60, { "Eastern Plaguelands", "Western Plaguelands", "Winterspring" } },
     },
@@ -45,9 +47,11 @@ ns.Guide = {
         { 42, 45, { "Tanaris", "Feralas", "Dustwallow Marsh" } },
         { 45, 48, { "Feralas", "The Hinterlands", "Azshara" } },
         { 48, 50, { "Tanaris", "Searing Gorge", "Blasted Lands", "Azshara" } },
+        { 48, 55, { "Moonglade" } },
         { 50, 52, { "Un'Goro Crater", "Felwood", "Azshara" } },
         { 52, 54, { "Felwood", "Burning Steppes", "Azshara" } },
         { 54, 56, { "Western Plaguelands", "Winterspring" } },
+        { 55, 60, { "Deadwind Pass" } },
         { 56, 58, { "Eastern Plaguelands", "Burning Steppes" } },
         { 58, 60, { "Eastern Plaguelands", "Winterspring", "Silithus" } },
     },
@@ -68,8 +72,9 @@ ns.ExtraZones = {
     { 36, 44, { "Riverglades" } },
 }
 
--- Which faction dominates a zone, shown as an extra line on the zone's own map.
--- Zones not listed are contested and get no line.
+-- Which faction dominates a zone, shown as an extra line on the zone's own map:
+-- "Alliance" / "Horde" = "Alliance dominated" / "Horde dominated",
+-- "Neutral" = "Neutral" (sanctuaries). Zones not listed are contested and get no line.
 ns.Territory = {
     -- Kalimdor: Alliance
     ["Teldrassil"] = "Alliance",

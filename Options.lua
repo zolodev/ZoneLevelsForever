@@ -1,10 +1,10 @@
 -- ZoneLevelsForever: settings panel under Options -> AddOns. Same settings as
 -- the settings window (SettingsWindow.lua), which can stay open next to the map.
+-- Blizzard's own "Defaults" button at the bottom of Options resets them.
 local addonName, ns = ...
 
 local config, defaults = ns.Config, ns.Defaults
 local category, layout = Settings.RegisterVerticalLayoutCategory(addonName)
-local variables = {} -- setting variable names, to refresh the panel after a reset
 
 local function AddButton(name, buttonText, onClick, tooltip)
     layout:AddInitializer(CreateSettingsButtonInitializer(name, buttonText, onClick, tooltip, true))
@@ -15,9 +15,7 @@ AddButton("Settings window", "Open", ns.ToggleSettingsWindow,
 
 -- Continent labels: always shown, or only on hover (same as the map button).
 do
-    local variable = "ZONELEVELSFOREVER_CONTINENT_LABELS"
-    table.insert(variables, variable)
-    local setting = Settings.RegisterProxySetting(category, variable,
+    local setting = Settings.RegisterProxySetting(category, "ZONELEVELSFOREVER_CONTINENT_LABELS",
         Settings.VarType.Boolean, "Show labels on continent maps", defaults.showContinentLabels,
         ns.ShowAllContinentLabels, ns.SetContinentLabels)
     Settings.CreateCheckbox(category, setting,
@@ -25,9 +23,7 @@ do
 end
 
 local function AddSlider(key, name, minValue, maxValue, step, format, onChange, tooltip)
-    local variable = "ZONELEVELSFOREVER_" .. key:upper()
-    table.insert(variables, variable)
-    local setting = Settings.RegisterProxySetting(category, variable,
+    local setting = Settings.RegisterProxySetting(category, "ZONELEVELSFOREVER_" .. key:upper(),
         Settings.VarType.Number, name, defaults[key],
         function() return config[key] end,
         function(value) onChange(key, value) end)
@@ -47,14 +43,5 @@ AddSlider("zoneLabelLeftToRight", "Zone map label position, left to right", 0, 1
     FormatPercent, ns.SetSetting, "0% = left edge, 100% = right edge.")
 AddSlider("zoneLabelTopToBottom", "Zone map label position, top to bottom", 0, 100, 1,
     FormatPercent, ns.SetSetting, "0% = top edge, 100% = bottom edge.")
-
-AddButton("Reset settings", "Reset",
-    function()
-        ns.ResetSettings()
-        for _, variable in ipairs(variables) do
-            Settings.NotifyUpdate(variable) -- show the reset values in the panel
-        end
-    end,
-    "Resets every setting above to the values in Config.lua.")
 
 Settings.RegisterAddOnCategory(category)
