@@ -25,6 +25,8 @@ ns.Config = {
 
     -- "Zone map label position, top to bottom"
     -- 0-100 %: 0 = top edge, 50 = middle, 100 = bottom edge.
+    -- The label hides while Blizzard shows its own zone name at the top of the
+    -- map (when you hover the map), so it can sit at the very top.
     zoneLabelTopToBottom = 0,
 
     -- The settings below are only in this file.
@@ -32,8 +34,9 @@ ns.Config = {
     -- Which part of the zone map label sits at the position above, e.g. "TOP"
     -- (top centre), "TOPLEFT", "TOPRIGHT", "CENTER", "BOTTOM", "BOTTOMLEFT",
     -- "BOTTOMRIGHT".
-    -- "TOP" with top to bottom = 0 keeps the whole label inside the map's top
-    -- edge; "TOPLEFT" with left to right = 2 puts it in the top-left corner.
+    -- "TOP" keeps the whole label below the position (with top to bottom = 0 it
+    -- touches the map's top edge); "TOPLEFT" with left to right = 2 puts it in
+    -- the top-left corner.
     zoneLabelAnchor = "TOP",
 
     -- Colours as "RRGGBB" hex (like in an image editor).

@@ -5,7 +5,7 @@ World of Warcraft Forever addon that shows recommended level ranges for each zon
 ## Features
 
 - Labels on the continent maps (Kalimdor, Eastern Kingdoms), with each zone's name and level range in the middle of the zone.
-- A label at the top of a zone's own map, with an extra line when the zone is Alliance dominated (blue), Horde dominated (red) or Neutral (light blue, e.g. Moonglade).
+- A label at the top of a zone's own map (hidden while Blizzard shows its own zone name there as you hover the map), with an extra line when the zone is Alliance dominated (blue), Horde dominated (red) or Neutral (light blue, e.g. Moonglade).
 - The level range is coloured by difficulty relative to your level (grey/green/yellow/orange/red), the same way Blizzard colours zone labels. It updates when you level up.
 - Your own faction's levelling guide is used. Zones that are only in the other faction's guide (e.g. The Barrens for Alliance) use that faction's range, so every zone gets a label.
 - A round map button in the top-right corner of the world map toggles the continent labels. When they're off, a zone's label only shows while you hover the zone.

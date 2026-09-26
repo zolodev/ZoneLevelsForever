@@ -59,6 +59,7 @@ end
 
 function provider:RefreshAllData()
     self:RemoveAllData()
+    self.zonePin = nil
 
     local map = self:GetMap()
     local mapID = map:GetMapID()
@@ -70,7 +71,7 @@ function provider:RefreshAllData()
     elseif info.mapType == Enum.UIMapType.Zone then
         local zone, range = GetZone(info.name)
         if range then
-            map:AcquirePin(PIN_TEMPLATE, FormatLabel(info.name, zone, range, true),
+            self.zonePin = map:AcquirePin(PIN_TEMPLATE, FormatLabel(info.name, zone, range, true),
                 config.zoneLabelLeftToRight / 100, config.zoneLabelTopToBottom / 100,
                 config.zoneLabelSize, config.zoneLabelAnchor)
         end
@@ -97,6 +98,30 @@ local function UpdateHover()
     if hoveredID ~= currentID then
         provider.hoveredZone = hovered or nil
         provider:RefreshAllData()
+    end
+end
+
+-- Blizzard's own label at the top of the map (the white zone name that shows
+-- while you hover the map). Found once among the map's data providers.
+local blizzardAreaLabel
+
+local function IsBlizzardLabelShown()
+    if not blizzardAreaLabel then
+        for dataProvider in pairs(WorldMapFrame.dataProviders) do
+            local label = dataProvider.Label
+            if label and label.GetHighestPriorityLabelInfo then
+                blizzardAreaLabel = label
+                break
+            end
+        end
+    end
+    return blizzardAreaLabel ~= nil and blizzardAreaLabel:GetHighestPriorityLabelInfo() ~= nil
+end
+
+-- The zone map label sits where Blizzard's label shows, so hide it meanwhile.
+local function UpdateZonePinVisibility()
+    if provider.zonePin then
+        provider.zonePin:SetAlpha(IsBlizzardLabelShown() and 0 or 1)
     end
 end
 
@@ -170,9 +195,11 @@ EventUtil.ContinueOnAddOnLoaded("Blizzard_WorldMap", function()
     WorldMapFrame:AddDataProvider(provider)
     CreateToggleButton()
 
-    -- Hover checks only run while the map is open and labels are toggled off.
+    -- Runs only while the map is open: hover mode, and hiding the zone map
+    -- label while Blizzard's label shows.
     local hoverFrame = CreateFrame("Frame", nil, WorldMapFrame)
     hoverFrame:SetScript("OnUpdate", function()
         if not ShowAllContinentLabels() then UpdateHover() end
+        UpdateZonePinVisibility()
     end)
 end)
