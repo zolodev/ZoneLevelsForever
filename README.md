@@ -11,6 +11,10 @@ World of Warcraft Forever addon that shows recommended level ranges for each zon
 
 Example label for an Alliance character:
 
+![alt text](images/Map01.png)
+
+![alt text](images/Map02.png)
+
 ```
 Ashenvale
 22-30
