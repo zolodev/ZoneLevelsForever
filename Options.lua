@@ -1,47 +1,46 @@
--- ZoneLevelsForever: settings panel under Options -> AddOns. Same settings as
+-- ZoneLevelsForever: settings panel under Options -> AddOns. Same controls as
 -- the settings window (SettingsWindow.lua), which can stay open next to the map.
--- Blizzard's own "Defaults" button at the bottom of Options resets them.
+--
+-- The panel is a frame of our own (a "canvas" category), not a list of Blizzard
+-- setting controls: the Options search skips canvas panels. Settings in the
+-- search results run addon code when they are shown, and that blocks Blizzard
+-- settings shown in the same results (searching for "con" or "contrast").
 local addonName, ns = ...
 
-local config, defaults = ns.Config, ns.Defaults
-local category, layout = Settings.RegisterVerticalLayoutCategory(addonName)
+local LEFT, TOP = 16, 16
+local GAP = 16
 
-local function AddButton(name, buttonText, onClick, tooltip)
-    layout:AddInitializer(CreateSettingsButtonInitializer(name, buttonText, onClick, tooltip, true))
+local panel = CreateFrame("Frame")
+
+local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+title:SetPoint("TOPLEFT", LEFT, -TOP)
+title:SetText(addonName)
+
+local open = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+open:SetSize(160, 22)
+open:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -GAP)
+open:SetText("Settings window")
+open:SetScript("OnClick", ns.ToggleSettingsWindow)
+
+local hint = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+hint:SetPoint("LEFT", open, "RIGHT", 10, 0)
+hint:SetPoint("RIGHT", panel, "RIGHT", -LEFT, 0)
+hint:SetJustifyH("LEFT")
+hint:SetText("Stays open when you close Options, so you can see changes live on the world map.")
+
+local controlsTop = TOP + title:GetStringHeight() + GAP + open:GetHeight() + GAP * 2
+ns.AddSettingsControls(panel, LEFT, controlsTop)
+
+panel:SetScript("OnShow", ns.UpdateSettingsPanel)
+
+-- Called by Options when it opens, and by its "Defaults" button.
+function panel:OnRefresh()
+    ns.UpdateSettingsPanel(self)
 end
 
-AddButton("Settings window", "Open", ns.ToggleSettingsWindow,
-    "Opens a settings window that stays open when you close Options, so you can open the world map next to it and see changes live.")
-
--- Continent labels: always shown, or only on hover (same as the map button).
-do
-    local setting = Settings.RegisterProxySetting(category, "ZONELEVELSFOREVER_CONTINENT_LABELS",
-        Settings.VarType.Boolean, "Show labels on continent maps", defaults.showContinentLabels,
-        ns.ShowAllContinentLabels, ns.SetContinentLabels)
-    Settings.CreateCheckbox(category, setting,
-        "When off, a zone's label only shows while you hover the zone.")
+function panel:OnDefault()
+    ns.ResetSettings()
 end
 
-local function AddSlider(key, name, minValue, maxValue, step, format, onChange, tooltip)
-    local setting = Settings.RegisterProxySetting(category, "ZONELEVELSFOREVER_" .. key:upper(),
-        Settings.VarType.Number, name, defaults[key],
-        function() return config[key] end,
-        function(value) onChange(key, value) end)
-    local options = Settings.CreateSliderOptions(minValue, maxValue, step)
-    options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, format)
-    Settings.CreateSlider(category, setting, options, tooltip)
-end
-
-local function FormatOneDecimal(value) return ("%.1f"):format(value) end
-local function FormatPercent(value) return ("%d%%"):format(math.floor(value + 0.5)) end
-
-AddSlider("continentLabelSize", "Label size on continent maps", ns.MIN_SCALE, ns.MAX_SCALE, 0.1,
-    FormatOneDecimal, ns.SetLabelScale, "1.0 = normal UI font size.")
-AddSlider("zoneLabelSize", "Label size on zone maps", ns.MIN_SCALE, ns.MAX_SCALE, 0.1,
-    FormatOneDecimal, ns.SetLabelScale, "1.0 = normal UI font size.")
-AddSlider("zoneLabelLeftToRight", "Zone map label position, left to right", 0, 100, 1,
-    FormatPercent, ns.SetSetting, "0% = left edge, 100% = right edge.")
-AddSlider("zoneLabelTopToBottom", "Zone map label position, top to bottom", 0, 100, 1,
-    FormatPercent, ns.SetSetting, "0% = top edge, 100% = bottom edge.")
-
+local category = Settings.RegisterCanvasLayoutCategory(panel, addonName)
 Settings.RegisterAddOnCategory(category)
